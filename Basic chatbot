@@ -1,0 +1,46 @@
+import time
+
+def chatbot_response(user_input):
+    # User input-ah lower case-ah mathuroom parsing easy-ah iruka
+    user_input = user_input.lower().strip()
+    
+    # Simple Response Logic
+    if "hello" in user_input or "hi" in user_input:
+        return "Hello! How can I help you today? 😊"
+    
+    elif "your name" in user_input or "who are you" in user_input:
+        return "I am Buddy, your virtual assistant. 🤖"
+    
+    elif "how are you" in user_input:
+        return "I'm doing great, thank you! How about you? ✨"
+    
+    elif "bye" in user_input or "exit" in user_input:
+        return "Goodbye! Have a great day ahead! 👋"
+    
+    elif "help" in user_input:
+        return "I can answer basic greetings, tell you my name, or help you exit. 🛠️"
+    
+    else:
+        return "I'm sorry, I didn't quite get that. Can you rephrase? 🤔"
+
+def start_bot():
+    print("====================================")
+    print("🤖 CHATBOT INITIALIZING... 🤖")
+    print("====================================")
+    time.sleep(1)
+    print("Bot: Hello! Type 'bye' or 'exit' to stop the chat.\n")
+    
+    while True:
+        user_input = input("You: ")
+        
+        # Checking for exit condition
+        if user_input.lower().strip() in ['bye', 'exit']:
+            print(f"Bot: {chatbot_response(user_input)}")
+            break
+            
+        response = chatbot_response(user_input)
+        print(f"Bot: {response}\n")
+
+# Program-ah run panna
+if __name__ == "__main__":
+    start_bot()
