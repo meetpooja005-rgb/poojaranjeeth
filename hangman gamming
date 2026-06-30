@@ -1,0 +1,165 @@
+import turtle                    
+import random
+import time
+
+# Game Configurations
+WORD_LIST = ["PYTHON", "INTERNSHIP", "DEVELOPER", "COMPUTER", "CODING", "HANGMAN"]
+chosen_word = random.choice(WORD_LIST)
+display_word = ["_"] * len(chosen_word)
+lives = 6
+guessed_letters = []
+
+# Screen Setup
+screen = turtle.Screen()
+screen.title("Python Internship Project - Ultra Animated Hangman")
+screen.setup(width=900, height=600)
+screen.bgcolor("#2C3E50") # Dark professional theme
+screen.tracer(0) # Turns off automatic animation for smooth custom loops
+
+# Turtle for drawing the Hangman Gallows & Stick Figure
+pen = turtle.Turtle()
+pen.hideturtle()
+pen.speed(0)
+
+# Turtle for writing text labels (Word spaces, Lives, Guesses)
+text_pen = turtle.Turtle()
+text_pen.hideturtle()
+text_pen.speed(0)
+
+def draw_gallows():
+    """Draws the main structural layout smoothly."""
+    pen.clear()
+    pen.pensize(6)
+    pen.pencolor("#ECF0F1")
+    
+    # Base
+    pen.penup(); pen.goto(-350, -200); pen.pendown(); pen.goto(-150, -200)
+    # Main Pole
+    pen.goto(-250, -200); pen.goto(-250, 150)
+    # Top Crossbar
+    pen.goto(-120, 150)
+    # Rope Drop
+    pen.goto(-120, 100)
+    screen.update()
+
+def draw_hangman_step():
+    """Draws parts dynamically based on lives left with a color pop."""
+    pen.pensize(5)
+    pen.pencolor("#E74C3C") # Warning Red for the character
+    
+    if lives == 5: # Head
+        pen.penup(); pen.goto(-120, 60); pen.pendown()
+        pen.circle(20)
+    elif lives == 4: # Spine/Body
+        pen.penup(); pen.goto(-120, 60); pen.pendown(); pen.goto(-120, -20)
+    elif lives == 3: # Left Arm
+        pen.penup(); pen.goto(-120, 40); pen.pendown(); pen.goto(-160, 10)
+    elif lives == 2: # Right Arm
+        pen.penup(); pen.goto(-120, 40); pen.pendown(); pen.goto(-80, 10)
+    elif lives == 1: # Left Leg
+        pen.penup(); pen.goto(-120, -20); pen.pendown(); pen.goto(-160, -70)
+    elif lives == 0: # Right Leg
+        pen.penup(); pen.goto(-120, -20); pen.pendown(); pen.goto(-80, -70)
+    screen.update()
+
+def update_text_dashboard():
+    """Refreshes the on-screen dashboard UI."""
+    text_pen.clear()
+    
+    # Main Title Label
+    text_pen.penup(); text_pen.goto(150, 200); text_pen.pencolor("#3498DB")
+    text_pen.write("HANGMAN GAME", align="center", font=("Arial", 28, "bold"))
+    
+    # Lives remaining panel counter
+    text_pen.goto(150, 140); text_pen.pencolor("#E74C3C")
+    text_pen.write(f"Lives Remaining: {lives}", align="center", font=("Arial", 16, "bold"))
+    
+    # Blanks / Secret word spaces (Large font tracking)
+    text_pen.goto(150, 40); text_pen.pencolor("#2ECC71")
+    spaced_word = " ".join(display_word)
+    text_pen.write(spaced_word, align="center", font=("Courier", 36, "bold"))
+    
+    # History tracking record of letters guessed
+    text_pen.goto(150, -40); text_pen.pencolor("#BDC3C7")
+    history_str = f"Guesses: {', '.join(guessed_letters)}" if guessed_letters else "Guesses: None"
+    text_pen.write(history_str, align="center", font=("Arial", 14, "italic"))
+    screen.update()
+
+def play_flash_animation(status_text, color):
+    """Creates a flash bounce and scale animation overlay when game finishes."""
+    for size in range(10, 42, 2):
+        text_pen.clear()
+        update_text_dashboard() # Keeps background intact
+        
+        # Animate the Game Over or Win Text popping out onto the screen
+        text_pen.penup(); text_pen.goto(150, -130); text_pen.pencolor(color)
+        text_pen.write(status_text, align="center", font=("Arial", size, "bold"))
+        
+        screen.update()
+        time.sleep(0.01) # Small timeout frame delay for smooth motion
+        
+    # Extra static subtext disclosure reveal loop
+    text_pen.goto(150, -180); text_pen.pencolor("#ECF0F1")
+    text_pen.write(f"The word was: {chosen_word}", align="center", font=("Arial", 16, "bold"))
+    
+    text_pen.goto(150, -240); text_pen.pencolor("#F1C40F")
+    text_pen.write("Press 'R' to Start New Game!", align="center", font=("Arial", 14, "bold"))
+    screen.update()
+
+def process_guess(letter):
+    """Processes user input letter."""
+    global lives
+    letter = letter.upper()
+    
+    # Rule validation constraints check
+    if letter in guessed_letters or lives <= 0 or "_" not in display_word:
+        return
+        
+    guessed_letters.append(letter)
+    
+    if letter in chosen_word:
+        for idx, char in enumerate(chosen_word):
+            if char == letter:
+                display_word[idx] = letter
+    else:
+        lives -= 1
+        draw_hangman_step()
+        
+    update_text_dashboard()
+    
+    # Evaluate victory or loss status trigger
+    if "_" not in display_word:
+        play_flash_animation("🎉 YOU WIN! 🎉", "#2ECC71")
+    elif lives <= 0:
+        play_flash_animation("💀 GAME OVER! 💀", "#E74C3C")
+
+def setup_key_listeners():
+    """Binds alphabet keys to process function inputs instantly."""
+    for ascii_val in range(65, 91): # A-Z keys tracking loop map
+        char = chr(ascii_val)
+        screen.onkeypress(lambda c=char: process_guess(c), char.lower())
+        screen.onkeypress(lambda c=char: process_guess(c), char.upper())
+        
+    # Keyboard configuration to listen to restart key binding 'r'
+    screen.onkeypress(restart_game, "r")
+    screen.onkeypress(restart_game, "R")
+    screen.listen()
+
+def restart_game():
+    """Resets states clean for a new game run instance loop."""
+    global chosen_word, display_word, lives, guessed_letters
+    chosen_word = random.choice(WORD_LIST)
+    display_word = ["_"] * len(chosen_word)
+    lives = 6
+    guessed_letters = []
+    
+    draw_gallows()
+    update_text_dashboard() # Clears old game over text completely
+
+# --- Initial Boot Sequence Execution Flow ---
+draw_gallows()
+update_text_dashboard()
+setup_key_listeners()
+
+# Starts the graphic continuous state tracker window frame loop
+screen.mainloop()
